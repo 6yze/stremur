@@ -64,7 +64,7 @@ export function TVPlayer({ showId, season, episode, title, posterPath }: Props) 
         <ArrowLeft className="w-6 h-6 text-white" />
       </button>
       <iframe
-        src={`https://player.videasy.net/tv/${showId}/${season}/${episode}`}
+        src={`https://vidsrc.to/embed/tv/${showId}/${season}/${episode}`}
         className="w-full h-full"
         frameBorder="0"
         allowFullScreen
