@@ -58,7 +58,7 @@ export function MoviePlayer({ movieId, title, posterPath }: Props) {
         <ArrowLeft className="w-6 h-6 text-white" />
       </button>
       <iframe
-        src={`https://videasy.net/movie/${movieId}`}
+        src={`https://player.videasy.net/movie/${movieId}`}
         className="w-full h-full border-0"
         allowFullScreen
       />
