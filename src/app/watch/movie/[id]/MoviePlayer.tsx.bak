@@ -63,6 +63,7 @@ export function MoviePlayer({ movieId, title, posterPath }: Props) {
         frameBorder="0"
         allowFullScreen
         allow="encrypted-media"
+        allowFullScreen
       />
     </div>
   );

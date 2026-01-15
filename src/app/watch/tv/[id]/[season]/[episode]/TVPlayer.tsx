@@ -65,8 +65,10 @@ export function TVPlayer({ showId, season, episode, title, posterPath }: Props) 
       </button>
       <iframe
         src={`https://player.videasy.net/tv/${showId}/${season}/${episode}`}
-        className="w-full h-full border-0"
+        className="w-full h-full"
+        frameBorder="0"
         allowFullScreen
+        allow="encrypted-media"
       />
     </div>
   );

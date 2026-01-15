@@ -4,12 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Props {
-  movieId: number;
+  showId: number;
+  season: number;
+  episode: number;
   title: string;
   posterPath: string | null;
 }
 
-export function MoviePlayer({ movieId, title, posterPath }: Props) {
+export function TVPlayer({ showId, season, episode, title, posterPath }: Props) {
   const progressRef = useRef(5);
   const router = useRouter();
 
@@ -19,10 +21,12 @@ export function MoviePlayer({ movieId, title, posterPath }: Props) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        mediaType: 'movie',
-        mediaId: movieId,
+        mediaType: 'tv',
+        mediaId: showId,
+        season,
+        episode,
         progress: progressRef.current,
-        duration: 7200,
+        duration: 2700,
         title,
         posterPath
       })
@@ -35,10 +39,12 @@ export function MoviePlayer({ movieId, title, posterPath }: Props) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            mediaType: 'movie',
-            mediaId: movieId,
+            mediaType: 'tv',
+            mediaId: showId,
+            season,
+            episode,
             progress: progressRef.current,
-            duration: 7200,
+            duration: 2700,
             title,
             posterPath
           })
@@ -47,7 +53,7 @@ export function MoviePlayer({ movieId, title, posterPath }: Props) {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [movieId, title, posterPath]);
+  }, [showId, season, episode, title, posterPath]);
 
   return (
     <div className="relative w-screen h-screen bg-black">
@@ -58,11 +64,12 @@ export function MoviePlayer({ movieId, title, posterPath }: Props) {
         <ArrowLeft className="w-6 h-6 text-white" />
       </button>
       <iframe
-        src={`https://player.videasy.net/movie/${movieId}`}
+        src={`https://player.videasy.net/tv/${showId}/${season}/${episode}`}
         className="w-full h-full"
         frameBorder="0"
         allowFullScreen
         allow="encrypted-media"
+        allowFullScreen
       />
     </div>
   );
