@@ -5,17 +5,16 @@ import { useRouter } from 'next/navigation'
 import { ChevronRight } from 'lucide-react'
 
 interface WatchHistoryItem {
-  id: string
-  userId: string
-  mediaId: number
-  mediaType: 'movie' | 'tv'
-  season?: number
-  episode?: number
+  id: number
+  media_type: 'movie' | 'tv'
+  media_id: number
+  season: number | null
+  episode: number | null
+  progress: number
+  duration: number
+  last_watched: string
   title: string
-  posterPath: string
-  watchDuration: number
-  totalDuration: number
-  lastWatchedAt: string
+  poster_path: string | null
 }
 
 interface MediaCardProps {
@@ -24,13 +23,12 @@ interface MediaCardProps {
 
 function MediaCard({ item }: MediaCardProps) {
   const router = useRouter()
-  const watchPercentage = item.totalDuration > 0 ? (item.watchDuration / item.totalDuration) * 100 : 0
   
   const handleClick = () => {
-    if (item.mediaType === 'movie') {
-      router.push(`/movie/${item.mediaId}`)
+    if (item.media_type === 'movie') {
+      router.push(`/movie/${item.media_id}`)
     } else {
-      router.push(`/tv/${item.mediaId}`)
+      router.push(`/tv/${item.media_id}`)
     }
   }
 
@@ -41,13 +39,13 @@ function MediaCard({ item }: MediaCardProps) {
     >
       <div className="relative">
         <img
-          src={`https://image.tmdb.org/t/p/w500${item.posterPath}`}
+          src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
           alt={item.title}
           className="w-full aspect-[2/3] object-cover"
         />
         
         {/* TV show badge */}
-        {item.mediaType === 'tv' && item.season && item.episode && (
+        {item.media_type === 'tv' && item.season && item.episode && (
           <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
             S{item.season} E{item.episode}
           </div>
@@ -57,7 +55,7 @@ function MediaCard({ item }: MediaCardProps) {
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
           <div 
             className="h-full bg-red-600 transition-all duration-200"
-            style={{ width: `${Math.min(watchPercentage, 100)}%` }}
+            style={{ width: `${Math.min(item.progress, 100)}%` }}
           />
         </div>
       </div>
@@ -67,7 +65,7 @@ function MediaCard({ item }: MediaCardProps) {
           {item.title}
         </h3>
         <p className="text-xs text-zinc-400 mt-1">
-          {Math.round(watchPercentage)}% watched
+          {Math.round(item.progress)}% watched
         </p>
       </div>
     </div>
