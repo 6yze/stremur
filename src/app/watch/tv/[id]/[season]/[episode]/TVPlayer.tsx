@@ -68,7 +68,8 @@ export function TVPlayer({ showId, season, episode, title, posterPath }: Props) 
         className="w-full h-full"
         frameBorder="0"
         allowFullScreen
-        allow="encrypted-media"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerPolicy="origin"
       />
     </div>
   );
