@@ -1,0 +1,36 @@
+import { SearchBar } from '@/components/search/SearchBar';
+import { SearchResults } from '@/components/search/SearchResults';
+import { tmdb, MediaItem } from '@/lib/tmdb';
+
+interface SearchPageProps {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const resolvedParams = await searchParams;
+  const query = resolvedParams.q || '';
+  let results: MediaItem[] = [];
+
+  if (query) {
+    try {
+      const response = await tmdb.searchMulti(query);
+      results = response.results || [];
+    } catch (error) {
+      console.error('Search error:', error);
+      results = [];
+    }
+  }
+
+  return (
+    <div className="min-h-screen">
+      <div className="py-8">
+        <SearchBar />
+      </div>
+      <div className="py-4">
+        <SearchResults results={results} query={query} />
+      </div>
+    </div>
+  );
+}

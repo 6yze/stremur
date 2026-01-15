@@ -1,44 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getWatchHistory, updateWatchProgress } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
-    // For now, return empty watch history
-    // In a real app, this would fetch from a database
-    return NextResponse.json({ watchHistory: [] });
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.get('limit');
+    const history = getWatchHistory(limit ? parseInt(limit) : undefined);
+    return NextResponse.json(history);
   } catch (error) {
     console.error('Error fetching watch history:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch watch history' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch watch history' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { mediaType, mediaId, data } = body;
-
-    if (!mediaType || !mediaId) {
-      return NextResponse.json(
-        { error: 'mediaType and mediaId are required' },
-        { status: 400 }
-      );
+    const { mediaType, mediaId, season, episode, progress, duration, title, posterPath } = body;
+    
+    if (!mediaType || !mediaId || progress === undefined || !duration || !title) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    // For now, just return success
-    // In a real app, this would save to a database
-    return NextResponse.json({ 
-      message: 'Watch history updated successfully',
-      mediaType,
-      mediaId,
-      data
+    
+    updateWatchProgress({
+      media_type: mediaType,
+      media_id: mediaId,
+      season,
+      episode,
+      progress,
+      duration,
+      title,
+      poster_path: posterPath
     });
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error updating watch history:', error);
-    return NextResponse.json(
-      { error: 'Failed to update watch history' },
-      { status: 500 }
-    );
+    console.error('Error updating watch progress:', error);
+    return NextResponse.json({ error: 'Failed to update watch progress' }, { status: 500 });
   }
 }

@@ -1,0 +1,23 @@
+import { tmdb } from '@/lib/tmdb';
+import { HeroBanner } from '@/components/media/HeroBanner';
+import { MediaRow } from '@/components/media/MediaRow';
+
+export default async function Home() {
+  const [trendingMovies, trendingTV] = await Promise.all([
+    tmdb.getTrending('movie'),
+    tmdb.getTrending('tv')
+  ]);
+
+  const heroItem = trendingMovies.results[0];
+
+  return (
+    <main className="min-h-screen bg-black pb-20">
+      {heroItem && <HeroBanner item={heroItem} />}
+      
+      <div className="space-y-8 mt-4 md:mt-8">
+        <MediaRow title="Trending Movies" items={trendingMovies.results} />
+        <MediaRow title="Trending TV Shows" items={trendingTV.results} />
+      </div>
+    </main>
+  );
+}
