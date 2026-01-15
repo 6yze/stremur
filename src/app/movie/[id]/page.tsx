@@ -6,16 +6,17 @@ import Link from 'next/link';
 import { WatchlistButton } from '@/components/media/WatchlistButton';
 
 interface MoviePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function MoviePage({ params }: MoviePageProps) {
+  const { id } = await params;
   let movie: Movie | null = null;
   
   try {
-    movie = await tmdb.getDetails<Movie>('movie', parseInt(params.id));
+    movie = await tmdb.getDetails<Movie>('movie', parseInt(id));
   } catch (error) {
     console.error('Failed to fetch movie details:', error);
   }

@@ -7,16 +7,17 @@ import SeasonSelector from './SeasonSelector';
 import { WatchlistButton } from '@/components/media/WatchlistButton';
 
 interface TVPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function TVPage({ params }: TVPageProps) {
+  const { id } = await params;
   let tvShow: TVShow | null = null;
   
   try {
-    tvShow = await tmdb.getDetails<TVShow>('tv', parseInt(params.id));
+    tvShow = await tmdb.getDetails<TVShow>('tv', parseInt(id));
   } catch (error) {
     console.error('Failed to fetch TV show details:', error);
   }
