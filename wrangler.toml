@@ -1,11 +1,7 @@
 name = "stremur"
-main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".open-next/cloudflare"
-
-[assets]
-directory = ".open-next/assets"
 
 [vars]
 NEXT_PUBLIC_CONVEX_URL = "https://laudable-jackal-942.convex.cloud"
