@@ -6,7 +6,6 @@ pages_build_output_dir = ".open-next/cloudflare"
 
 [assets]
 directory = ".open-next/assets"
-binding = "ASSETS"
 
 [vars]
 NEXT_PUBLIC_CONVEX_URL = "https://laudable-jackal-942.convex.cloud"
