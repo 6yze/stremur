@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Provider Comparison - Avengers: Endgame</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { text-align: center; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .provider {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #333;
+        }
+        .provider-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: #8B5CF6;
+        }
+        .provider-url {
+            font-size: 0.75em;
+            color: #666;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        .player-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .player-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .status {
+            margin-top: 8px;
+            font-size: 0.85em;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .status.working { background: #22c55e20; color: #22c55e; }
+        .status.unknown { background: #f59e0b20; color: #f59e0b; }
+        .status.broken { background: #ef444420; color: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>Video Provider Comparison</h1>
+    <p class="subtitle">Testing with Avengers: Endgame (TMDB ID: 299534)</p>
+
+    <div class="grid">
+        <div class="provider">
+            <div class="provider-name">vidsrc.to</div>
+            <div class="provider-url">https://vidsrc.to/embed/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://vidsrc.to/embed/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status working">Currently using</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">vidsrc.cc</div>
+            <div class="provider-url">https://vidsrc.cc/v2/embed/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://vidsrc.cc/v2/embed/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">vidsrc.xyz</div>
+            <div class="provider-url">https://vidsrc.xyz/embed/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://vidsrc.xyz/embed/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">vidsrc.pro</div>
+            <div class="provider-url">https://vidsrc.pro/embed/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://vidsrc.pro/embed/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">2embed.cc</div>
+            <div class="provider-url">https://2embed.cc/embed/299534</div>
+            <div class="player-container">
+                <iframe src="https://2embed.cc/embed/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">autoembed.cc</div>
+            <div class="provider-url">https://autoembed.cc/embed/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://autoembed.cc/embed/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">multiembed.mov</div>
+            <div class="provider-url">https://multiembed.mov/directstream.php?video_id=299534&tmdb=1</div>
+            <div class="player-container">
+                <iframe src="https://multiembed.mov/directstream.php?video_id=299534&tmdb=1" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">embedsu.com</div>
+            <div class="provider-url">https://embedsu.com/embed/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://embedsu.com/embed/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status unknown">Test</div>
+        </div>
+
+        <div class="provider">
+            <div class="provider-name">videasy.net (for reference)</div>
+            <div class="provider-url">https://player.videasy.net/movie/299534</div>
+            <div class="player-container">
+                <iframe src="https://player.videasy.net/movie/299534" allowfullscreen></iframe>
+            </div>
+            <div class="status broken">Not working from server</div>
+        </div>
+    </div>
+</body>
+</html>

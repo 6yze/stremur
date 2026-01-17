@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/movie/[id]/page": "app/movie/[id]/page.js",
+  "/page": "app/page.js",
+  "/profiles/page": "app/profiles/page.js",
+  "/search/page": "app/search/page.js",
+  "/setup/page": "app/setup/page.js",
+  "/tv/[id]/page": "app/tv/[id]/page.js",
+  "/watch/movie/[id]/page": "app/watch/movie/[id]/page.js",
+  "/watch/tv/[id]/[season]/[episode]/page": "app/watch/tv/[id]/[season]/[episode]/page.js",
+  "/watchlist/page": "app/watchlist/page.js"
+}

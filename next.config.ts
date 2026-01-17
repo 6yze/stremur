@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove output: export to allow server-side rendering via OpenNext
+  output: "standalone",
   images: {
     unoptimized: true,
     remotePatterns: [
