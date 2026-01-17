@@ -1,51 +1,56 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { ChevronRight } from 'lucide-react'
+import { useRouter } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useUser } from "@/contexts/UserContext";
+import { getPosterUrl } from "@/lib/tmdb-client";
 
 interface WatchHistoryItem {
-  id: number
-  media_type: 'movie' | 'tv'
-  media_id: number
-  season: number | null
-  episode: number | null
-  progress: number
-  duration: number
-  last_watched: string
-  title: string
-  poster_path: string | null
+  _id: string;
+  mediaType: "movie" | "tv";
+  mediaId: number;
+  season?: number;
+  episode?: number;
+  progress: number;
+  duration: number;
+  title: string;
+  posterPath?: string;
+  updatedAt: number;
 }
 
 interface MediaCardProps {
-  item: WatchHistoryItem
+  item: WatchHistoryItem;
 }
 
 function MediaCard({ item }: MediaCardProps) {
-  const router = useRouter()
+  const router = useRouter();
   
   const handleClick = () => {
-    if (item.media_type === 'movie') {
-      router.push(`/movie/${item.media_id}`)
+    if (item.mediaType === "movie") {
+      router.push(`/movie/${item.mediaId}`);
     } else {
-      router.push(`/tv/${item.media_id}`)
+      router.push(`/tv/${item.mediaId}`);
     }
-  }
+  };
+
+  const progressPercent = item.duration > 0 ? (item.progress / item.duration) * 100 : 0;
 
   return (
     <div 
-      className="w-[160px] md:w-[200px] rounded-lg overflow-hidden bg-zinc-900 group cursor-pointer transition-transform duration-200 hover:scale-105"
+      className="w-[160px] md:w-[200px] rounded-lg overflow-hidden bg-zinc-900 group cursor-pointer transition-transform duration-200 hover:scale-105 flex-shrink-0"
       onClick={handleClick}
     >
       <div className="relative">
         <img
-          src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+          src={item.posterPath ? getPosterUrl(item.posterPath) : "/placeholder-poster.png"}
           alt={item.title}
           className="w-full aspect-[2/3] object-cover"
         />
         
         {/* TV show badge */}
-        {item.media_type === 'tv' && item.season && item.episode && (
+        {item.mediaType === "tv" && item.season && item.episode && (
           <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
             S{item.season} E{item.episode}
           </div>
@@ -55,7 +60,7 @@ function MediaCard({ item }: MediaCardProps) {
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
           <div 
             className="h-full bg-red-600 transition-all duration-200"
-            style={{ width: `${Math.min(item.progress, 100)}%` }}
+            style={{ width: `${Math.min(progressPercent, 100)}%` }}
           />
         </div>
       </div>
@@ -65,38 +70,22 @@ function MediaCard({ item }: MediaCardProps) {
           {item.title}
         </h3>
         <p className="text-xs text-zinc-400 mt-1">
-          {Math.round(item.progress)}% watched
+          {Math.round(progressPercent)}% watched
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 export default function ContinueWatchingRow() {
-  const [items, setItems] = useState<WatchHistoryItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const { currentUser } = useUser();
+  
+  const items = useQuery(
+    api.watchHistory.getWatchHistory,
+    currentUser ? { userId: currentUser._id, limit: 20 } : "skip"
+  );
 
-  useEffect(() => {
-    async function fetchWatchHistory() {
-      try {
-        const response = await fetch('/api/watch-history?limit=20')
-        if (!response.ok) {
-          throw new Error('Failed to fetch watch history')
-        }
-        const data = await response.json()
-        setItems(data)
-        setError(false)
-      } catch (err) {
-        console.error('Error fetching watch history:', err)
-        setError(true)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchWatchHistory()
-  }, [])
+  const loading = items === undefined;
 
   // Loading state with skeleton cards
   if (loading) {
@@ -111,7 +100,7 @@ export default function ContinueWatchingRow() {
         <div className="overflow-x-auto">
           <div className="flex gap-4 px-4 md:px-8">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="w-[160px] md:w-[200px]">
+              <div key={i} className="w-[160px] md:w-[200px] flex-shrink-0">
                 <div className="rounded-lg overflow-hidden bg-zinc-900 animate-pulse">
                   <div className="w-full aspect-[2/3] bg-zinc-800" />
                   <div className="p-3">
@@ -124,17 +113,12 @@ export default function ContinueWatchingRow() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // If no items after loading, return null
-  if (items.length === 0) {
-    return null
-  }
-
-  // Error state - optionally show something
-  if (error) {
-    return null
+  if (!items || items.length === 0) {
+    return null;
   }
 
   return (
@@ -148,10 +132,10 @@ export default function ContinueWatchingRow() {
       <div className="overflow-x-auto">
         <div className="flex gap-4 px-4 md:px-8">
           {items.map((item) => (
-            <MediaCard key={item.id} item={item} />
+            <MediaCard key={item._id} item={item as WatchHistoryItem} />
           ))}
         </div>
       </div>
     </div>
-  )
+  );
 }

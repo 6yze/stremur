@@ -1,16 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Season } from '@/lib/tmdb';
-import { ChevronDown, List, Play } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { Season } from "@/lib/tmdb-client";
+import { ChevronDown, List, Play } from "lucide-react";
 
 interface SeasonSelectorProps {
   seasons: Season[];
+  tvId: number;
 }
 
-export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
+export default function SeasonSelector({ seasons, tvId }: SeasonSelectorProps) {
   const [selectedSeason, setSelectedSeason] = useState<Season>(
-    seasons.find(s => s.season_number === 1) || seasons[0] || null
+    seasons.find(s => s.season_number === 1) || seasons[0]
   );
   const [isOpen, setIsOpen] = useState(false);
 
@@ -23,20 +25,15 @@ export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
     setIsOpen(false);
   };
 
-  const getEpisodeCount = (season: Season) => {
-    if (season.episodes) {
-      return season.episodes.length;
-    }
-    // If episodes data isn't available yet, show season number instead
-    return 'Season ' + season.season_number;
-  };
-
   const episodeCountText = (season: Season) => {
     if (season.episodes) {
       const count = season.episodes.length;
-      return `${count} ${count === 1 ? 'episode' : 'episodes'}`;
+      return `${count} ${count === 1 ? "episode" : "episodes"}`;
     }
-    return 'Episodes';
+    if (season.episode_count) {
+      return `${season.episode_count} ${season.episode_count === 1 ? "episode" : "episodes"}`;
+    }
+    return "Episodes";
   };
 
   return (
@@ -47,8 +44,8 @@ export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
           onClick={() => setIsOpen(!isOpen)}
           className="w-full md:w-auto min-w-[250px] flex items-center justify-between bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-3 rounded-lg transition-colors"
         >
-          <span className="font-medium">{selectedSeason?.name || 'Select Season'}</span>
-          <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <span className="font-medium">{selectedSeason?.name || "Select Season"}</span>
+          <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
 
         {/* Dropdown Menu */}
@@ -58,7 +55,7 @@ export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
               <button
                 key={season.id}
                 onClick={() => handleSeasonSelect(season)}
-                className={`w-full text-left px-4 py-3 hover:bg-zinc-700 transition-colors flex items-center justify-between ${selectedSeason?.id === season.id ? 'bg-zinc-700' : ''}`}
+                className={`w-full text-left px-4 py-3 hover:bg-zinc-700 transition-colors flex items-center justify-between ${selectedSeason?.id === season.id ? "bg-zinc-700" : ""}`}
               >
                 <span>{season.name}</span>
                 <span className="text-zinc-400 text-sm">{episodeCountText(season)}</span>
@@ -85,10 +82,10 @@ export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
 
           {selectedSeason.air_date && (
             <p className="text-zinc-400 text-sm">
-              First aired: {new Date(selectedSeason.air_date).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              First aired: {new Date(selectedSeason.air_date).toLocaleDateString("en-US", { 
+                year: "numeric", 
+                month: "long", 
+                day: "numeric" 
               })}
             </p>
           )}
@@ -98,14 +95,15 @@ export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
             <div className="pt-3 border-t border-zinc-700">
               <p className="text-zinc-400 text-sm mb-2">Episodes:</p>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {selectedSeason.episodes.slice(0, 5).map((episode) => (
-                  <div 
+                {selectedSeason.episodes.map((episode) => (
+                  <Link 
                     key={episode.id}
+                    href={`/watch/tv/${tvId}/${selectedSeason.season_number}/${episode.episode_number}`}
                     className="flex items-center gap-3 p-2 hover:bg-zinc-700/50 rounded transition-colors"
                   >
-                    <button className="flex-shrink-0 w-8 h-8 bg-zinc-700 hover:bg-zinc-600 rounded-full flex items-center justify-center transition-colors">
+                    <div className="flex-shrink-0 w-8 h-8 bg-zinc-700 hover:bg-zinc-600 rounded-full flex items-center justify-center transition-colors">
                       <Play className="w-4 h-4 fill-current" />
-                    </button>
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium truncate">
                         {episode.episode_number}. {episode.name}
@@ -119,13 +117,8 @@ export default function SeasonSelector({ seasons }: SeasonSelectorProps) {
                         {episode.runtime}m
                       </span>
                     )}
-                  </div>
+                  </Link>
                 ))}
-                {selectedSeason.episodes.length > 5 && (
-                  <p className="text-zinc-400 text-sm text-center pt-2">
-                    +{selectedSeason.episodes.length - 5} more episodes
-                  </p>
-                )}
               </div>
             </div>
           )}

@@ -1,51 +1,56 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check } from "lucide-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useUser } from "@/contexts/UserContext";
 
 interface WatchlistButtonProps {
-  mediaType: 'movie' | 'tv';
+  mediaType: "movie" | "tv";
   mediaId: number;
   title: string;
   posterPath: string | null;
 }
 
 export function WatchlistButton({ mediaType, mediaId, title, posterPath }: WatchlistButtonProps) {
-  const [inWatchlist, setInWatchlist] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { currentUser } = useUser();
+  
+  const inWatchlist = useQuery(
+    api.watchlist.isInWatchlist,
+    currentUser ? { userId: currentUser._id, mediaId, mediaType } : "skip"
+  );
+  
+  const addToWatchlist = useMutation(api.watchlist.addToWatchlist);
+  const removeFromWatchlist = useMutation(api.watchlist.removeFromWatchlist);
 
-  useEffect(() => {
-    fetch(`/api/watchlist/${mediaType}/${mediaId}`)
-      .then(res => res.json())
-      .then(data => {
-        setInWatchlist(data.inWatchlist);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [mediaType, mediaId]);
+  const loading = inWatchlist === undefined;
 
   const toggle = async () => {
-    setLoading(true);
+    if (!currentUser) return;
+    
     try {
       if (inWatchlist) {
-        await fetch('/api/watchlist', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mediaType, mediaId })
+        await removeFromWatchlist({
+          userId: currentUser._id,
+          mediaId,
+          mediaType,
         });
-        setInWatchlist(false);
       } else {
-        await fetch('/api/watchlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mediaType, mediaId, title, posterPath })
+        await addToWatchlist({
+          userId: currentUser._id,
+          mediaId,
+          mediaType,
+          title,
+          posterPath: posterPath || undefined,
         });
-        setInWatchlist(true);
       }
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Failed to toggle watchlist:", error);
     }
   };
+
+  // Don't show button if not logged in
+  if (!currentUser) return null;
 
   return (
     <button
@@ -53,12 +58,12 @@ export function WatchlistButton({ mediaType, mediaId, title, posterPath }: Watch
       disabled={loading}
       className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
         inWatchlist 
-          ? 'bg-green-600 hover:bg-green-700 text-white' 
-          : 'bg-zinc-700 hover:bg-zinc-600 text-white'
+          ? "bg-green-600 hover:bg-green-700 text-white" 
+          : "bg-zinc-700 hover:bg-zinc-600 text-white"
       } disabled:opacity-50`}
     >
       {inWatchlist ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-      {inWatchlist ? 'In Watchlist' : 'Watchlist'}
+      {inWatchlist ? "In Watchlist" : "Watchlist"}
     </button>
   );
 }

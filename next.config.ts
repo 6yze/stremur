@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  // Remove output: export to allow server-side rendering via OpenNext
   images: {
     unoptimized: true,
     remotePatterns: [
-      { protocol: 'https', hostname: 'image.tmdb.org' }
+      { protocol: "https", hostname: "image.tmdb.org" }
     ]
   }
 };

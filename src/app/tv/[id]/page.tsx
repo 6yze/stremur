@@ -1,41 +1,85 @@
-import Image from 'next/image';
-import { notFound } from 'next/navigation';
-import { tmdb, TVShow } from '@/lib/tmdb';
-import { ArrowLeft, Play, Star, Calendar } from 'lucide-react';
-import Link from 'next/link';
-import SeasonSelector from './SeasonSelector';
-import { WatchlistButton } from '@/components/media/WatchlistButton';
+"use client";
 
-interface TVPageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, Play, Star, Calendar } from "lucide-react";
+import { tmdbClient, TVShow, Season, getPosterUrl, getBackdropUrl } from "@/lib/tmdb-client";
+import { WatchlistButton } from "@/components/media/WatchlistButton";
+import SeasonSelector from "./SeasonSelector";
 
-export default async function TVPage({ params }: TVPageProps) {
-  const { id } = await params;
-  let tvShow: TVShow | null = null;
-  
-  try {
-    tvShow = await tmdb.getDetails<TVShow>('tv', parseInt(id));
-  } catch (error) {
-    console.error('Failed to fetch TV show details:', error);
+export default function TVPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [tvShow, setTvShow] = useState<TVShow | null>(null);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchTVShow() {
+      if (!params.id) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const data = await tmdbClient.getTVShowDetails(Number(params.id));
+        setTvShow(data);
+        
+        // Filter out special seasons (like season 0 - specials)
+        const regularSeasons = data.seasons?.filter(s => s.season_number > 0) || [];
+        
+        // Fetch episode data for each season
+        const seasonsWithEpisodes = await Promise.all(
+          regularSeasons.map(async (season) => {
+            try {
+              const seasonData = await tmdbClient.getTVSeasonDetails(Number(params.id), season.season_number);
+              return seasonData;
+            } catch {
+              return season;
+            }
+          })
+        );
+        
+        setSeasons(seasonsWithEpisodes);
+      } catch (err) {
+        console.error("Failed to fetch TV show:", err);
+        setError("Failed to load TV show details");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchTVShow();
+  }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+      </div>
+    );
   }
 
-  if (!tvShow) {
-    notFound();
+  if (error || !tvShow) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+        <p className="text-red-500">{error || "TV show not found"}</p>
+        <button
+          onClick={() => router.back()}
+          className="px-4 py-2 bg-zinc-800 rounded hover:bg-zinc-700 transition-colors"
+        >
+          Go Back
+        </button>
+      </div>
+    );
   }
 
-  const backdropUrl = tvShow.backdrop_path 
-    ? `https://image.tmdb.org/t/p/w1280${tvShow.backdrop_path}` 
-    : null;
-  
-  const posterUrl = tvShow.poster_path 
-    ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` 
-    : null;
-
-  // Filter out special seasons (like season 0 - specials)
-  const regularSeasons = tvShow.seasons?.filter(s => s.season_number > 0) || [];
+  const backdropUrl = tvShow.backdrop_path ? getBackdropUrl(tvShow.backdrop_path) : null;
+  const posterUrl = tvShow.poster_path ? getPosterUrl(tvShow.poster_path) : null;
+  const firstAirYear = tvShow.first_air_date ? new Date(tvShow.first_air_date).getFullYear() : null;
 
   return (
     <div className="min-h-screen bg-black">
@@ -71,11 +115,11 @@ export default async function TVPage({ params }: TVPageProps) {
       </div>
 
       {/* Content Section */}
-      <div className="relative -mt-20 px-4 md:px-8 pb-8">
+      <div className="relative -mt-32 md:-mt-48 px-4 md:px-8 pb-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Poster */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 hidden md:block">
               {posterUrl ? (
                 <div className="relative w-[200px] md:w-[300px] aspect-[2/3] rounded-lg overflow-hidden shadow-2xl">
                   <Image
@@ -87,72 +131,63 @@ export default async function TVPage({ params }: TVPageProps) {
                   />
                 </div>
               ) : (
-                <div className="w-[200px] md:w-[300px] aspect-[2/3] bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
-                  No Poster
+                <div className="w-[200px] md:w-[300px] aspect-[2/3] rounded-lg bg-zinc-800 flex items-center justify-center">
+                  <span className="text-zinc-600">No poster</span>
                 </div>
               )}
             </div>
 
-            {/* TV Show Info */}
-            <div className="flex-1 space-y-6">
-              {/* Title and Rating */}
-              <div>
-                <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                  {tvShow.name}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-4 text-zinc-300">
-                  <div className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                    <span className="font-semibold">{tvShow.vote_average.toFixed(1)}</span>
-                    <span className="text-sm">/10</span>
+            {/* Details */}
+            <div className="flex-1 pt-4">
+              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">{tvShow.name}</h1>
+              
+              {/* Meta info */}
+              <div className="flex flex-wrap items-center gap-4 text-zinc-300 mb-6">
+                {tvShow.vote_average > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    <span>{tvShow.vote_average.toFixed(1)}</span>
                   </div>
-                  
-                  {tvShow.first_air_date && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5" />
-                      <span>{new Date(tvShow.first_air_date).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}</span>
-                    </div>
-                  )}
-                </div>
+                )}
+                {firstAirYear && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-5 h-5" />
+                    <span>{firstAirYear}</span>
+                  </div>
+                )}
+                {tvShow.number_of_seasons && (
+                  <span>{tvShow.number_of_seasons} Season{tvShow.number_of_seasons > 1 ? "s" : ""}</span>
+                )}
               </div>
 
               {/* Overview */}
-              <div>
-                <h2 className="text-xl font-semibold text-white mb-3">Overview</h2>
-                <p className="text-zinc-300 leading-relaxed">
-                  {tvShow.overview || 'No overview available.'}
+              {tvShow.overview && (
+                <p className="text-zinc-300 text-lg leading-relaxed mb-8 max-w-3xl">
+                  {tvShow.overview}
                 </p>
-              </div>
-
-              {/* Seasons */}
-              {regularSeasons.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold text-white mb-3">Seasons</h2>
-                  <SeasonSelector seasons={regularSeasons} />
-                </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="pt-4 flex flex-wrap gap-4">
-                <Link 
+              {/* Actions */}
+              <div className="flex flex-wrap gap-4 mb-8">
+                <Link
                   href={`/watch/tv/${tvShow.id}/1/1`}
-                  className="flex items-center gap-3 bg-[#E50914] hover:bg-[#b2070f] text-white px-8 py-3 rounded-lg font-semibold text-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold text-white transition-colors"
                 >
-                  <Play className="w-6 h-6 fill-current" />
+                  <Play className="w-5 h-5 fill-white" />
                   Watch Now
                 </Link>
                 <WatchlistButton
-                  mediaType="tv"
                   mediaId={tvShow.id}
+                  mediaType="tv"
                   title={tvShow.name}
                   posterPath={tvShow.poster_path}
                 />
               </div>
+
+              {/* Season Selector */}
+              {seasons.length > 0 && (
+                <SeasonSelector seasons={seasons} tvId={Number(params.id)} />
+              )}
             </div>
           </div>
         </div>
